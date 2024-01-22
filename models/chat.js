@@ -3,9 +3,9 @@ import mongoose from 'mongoose'
 const chatSchema = mongoose.Schema({
     chatname: {type: String},
     isgroupchat: {type: Boolean, default: false},
-    users: [{type: String}],
-    latestmessage: {type: String},
-    groupAdmin: {type: String},
+    users: [{type: mongoose.Schema.Types.ObjectId, ref: "User"}],
+    latestmessage: {type: mongoose.Schema.Types.ObjectId, ref: "Message"},
+    groupAdmin: {type: mongoose.Schema.Types.ObjectId, ref: "User"},
 },
 {timestamps: true}
 );

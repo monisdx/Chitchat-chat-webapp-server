@@ -1,12 +1,14 @@
 import express from 'express';
-import {createchat, userchats, findchat} from '../controllers/chats.js';
+import {createChat, userChats, createGroupChat, renameGroupChat, removeGroupChat, addGroupChat} from '../controllers/chats.js';
+import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.post('/', createchat)
-router.get('/:userid', userchats)
-router.get('/find/:firstid/:secondid', findchat)
-
-
+router.post('/', auth, createChat)
+router.get('/', auth, userChats)
+router.post('/group', auth, createGroupChat)
+router.put('/renamegroup',renameGroupChat)
+router.put('/removegroup', removeGroupChat)
+router.put('/addgroup', addGroupChat)
 
 export default router;

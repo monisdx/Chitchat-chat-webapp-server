@@ -1,77 +1,107 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import User from '../models/user.js';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "../models/user.js";
 
+export const signin = async (req, res) => {
+  const { email, password } = req.body;
 
-export const signin = async(req,res) => {
-    const { email, password} = req.body;
+  try {
+    const existinguser = await User.findOne({ email });
 
-    try {
-        const existinguser = await User.findOne({email});
+    if (!existinguser)
+      return res.status(404).json({ message: "user doesn't exit" });
 
-        if(!existinguser) return res.status(404).json({ message: "user doesn't exit"});
+    const ispasswordcorrect = await bcrypt.compare(
+      password,
+      existinguser.password
+    );
 
-        const ispasswordcorrect = await bcrypt.compare(password,existinguser.password);
-        
-        if(!ispasswordcorrect) return res.status(400).json({ message: "invalid credensials"});
+    if (!ispasswordcorrect)
+      return res.status(400).json({ message: "invalid credensials" });
 
-        const token = jwt.sign({email: existinguser.email, id: existinguser._id}, 'test', {expiresIn: '1h'});
+    const token = jwt.sign(
+      { email: existinguser.email, id: existinguser._id },
+      "test",
+      { expiresIn: "1h" }
+    );
 
-        res.status(200).json({result: existinguser,token});
-    }
-    catch(error){
-        res.status(500).json({message: 'something went wrong'})
-        console.log(error)
-    }
-}
+    res.status(200).json({ result: existinguser, token });
+  } catch (error) {
+    res.status(500).json({ message: "something went wrong" });
+    console.log(error);
+  }
+};
 
-export const signup = async(req,res) => {
-    const { email, password, confirmpassword, name} = req.body;
+export const signup = async (req, res) => {
+  const { email, password, confirmpassword, name } = req.body;
 
-    try{
-        const existinguser = await User.findOne({email});
+  try {
+    const existinguser = await User.findOne({ email });
 
-        if(existinguser) return res.status(400).json({ message: "user already exit"});
-        
-        if(password !== confirmpassword) return res.status(400).json({ message: "password doesn't matched"});
+    if (existinguser)
+      return res.status(400).json({ message: "user already exit" });
 
-        const hashPassword = await bcrypt.hash(password,12);
-        
-        const result = await User.create({ email, password: hashPassword, name})
+    if (password !== confirmpassword)
+      return res.status(400).json({ message: "password doesn't matched" });
 
-        const token = jwt.sign({email: result.email, id: result._id}, 'test', {expiresIn: '1h'});
+    const hashPassword = await bcrypt.hash(password, 12);
 
-        res.status(200).json({result, token});
-    }
-    catch(error){
-        res.status(500).json({message: 'something went wrong'})
-        console.log(error);
-    }
-}
+    const result = await User.create({ email, password: hashPassword, name });
 
-export const getusers = async(req, res) => {
-    try {
-        const users = await User.find();
+    const token = jwt.sign({ email: result.email, id: result._id }, "test", {
+      expiresIn: "1h",
+    });
 
-        res.status(200).json(users);
-    }
-    catch(error){
-        res.status(500).json(error);
-    }
-}
+    res.status(200).json({ result, token });
+  } catch (error) {
+    res.status(500).json({ message: "something went wrong" });
+    console.log(error);
+  }
+};
 
-export const getuser = async(req, res) =>{
-    const { id } = req.params;
-    try{
-        const user = await User.findById(id);
+export const getUsersBySearch = async (req, res) => {
+  const { searchQuery } = req.query;
 
-        res.status(200).json(user);
-    }
-    catch(error){
-        res.status(500).json(error);
+  try {
+    const search = new RegExp(searchQuery, "i");
+    // console.log(req.userId);
+    // const users = await User.find({ {_id: { $ne: req.userId } } ,$or: [{name: search},{email: search}]});
+    // const users = await User.find({_id: req.userId});
+    const users = await User.find({
+      $and: [
+        { _id: { $ne: req.userId } },
+        { $or: [{ name: search }, { email: search }] },
+      ],
+    });
+   
+    // console.log(users);
 
-    }
-}
+    res.json({ data: users });
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
+};
+
+export const getusers = async (req, res) => {
+  try {
+    const users = await User.find();
+
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+
+export const getuser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id);
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
 
 // get users to whom alreay chatted/chatroom exists
 // search for users using username/name
