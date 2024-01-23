@@ -7,8 +7,8 @@ const router = express.Router();
 router.post('/', auth, createChat)
 router.get('/', auth, userChats)
 router.post('/group', auth, createGroupChat)
-router.put('/renamegroup',renameGroupChat)
-router.put('/removegroup', removeGroupChat)
-router.put('/addgroup', addGroupChat)
+router.put('/renamegroup',auth, renameGroupChat)
+router.put('/removegroup', auth, removeGroupChat)
+router.put('/addgroup', auth,addGroupChat)
 
 export default router;

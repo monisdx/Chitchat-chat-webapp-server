@@ -73,7 +73,7 @@ export const createGroupChat = async(req, res) =>{
             return res.status(200).json({data: "please add more than 1 users"});
         }
         users.push(req.userId);
-        const groupchat = await Chat.create({chatname:name, users, isgroupchat:true, groupadmin:req.userId});
+        const groupchat = await Chat.create({chatname:name, users, isgroupchat:true, groupAdmin:req.userId});
         const fullchat = await Chat.findOne({_id:groupchat._id}).populate("users","-password").populate("groupAdmin","-password");
 
         return res.status(200).json({data:fullchat});
@@ -86,13 +86,10 @@ export const createGroupChat = async(req, res) =>{
 
 export const renameGroupChat = async(req, res) =>{
     const {chatId , chatname} = req.body;
-
+  
     try{
-        if(!mongoose.Types.ObjectId.isValid(chatId)) return res.status(404).send('no chat with that id');
-
-        const chat = await Chat.findById(chatId);
-
-        const updatedchat = await Chat.findByIdAndUpdate(chatId,{...chat,chatname},{new: true}).populate("users","-password").populate("groupadmin","-password");
+       
+      const updatedchat = await Chat.findByIdAndUpdate(chatId,{chatname},{new: true}).populate("users","-password").populate("groupAdmin","-password");
 
        res.json({data: updatedchat});
 
@@ -106,13 +103,13 @@ export const addGroupChat = async(req, res) =>{
     const {chatId, userId} = req.body;
 
     try{
-        if(!mongoose.Types.ObjectId.isValid(chatId)) return res.status(404).send('no chat with that id');
+        // if(!mongoose.Types.ObjectId.isValid(chatId)) return res.status(404).send('no chat with that id');
 
         const chat = await Chat.findById(chatId);
 
         chat.users.push(userId);
 
-        const updatedchat = await Chat.findByIdAndUpdate(chatId,chat, {new: true}).populate("users","-password").populate("groupadmin","-password");
+        const updatedchat = await Chat.findByIdAndUpdate(chatId,chat, {new: true}).populate("users","-password").populate("groupAdmin","-password");
 
         res.json({data: updatedchat});
 
@@ -126,13 +123,15 @@ export const removeGroupChat = async(req, res) =>{
     const {chatId, userId} = req.body;
 
     try{
-        if(!mongoose.Types.ObjectId.isValid(chatId)) return res.status(404).send('no chat with that id');
+        // if(!mongoose.Types.ObjectId.isValid(chatId)) return res.status(404).send('no chat with that id');
 
         const chat = await Chat.findById(chatId);
 
-        chat.users = chat.users.filter((id) => id !== userId);
+        chat.users = chat.users.filter((u) => u._id.toString() !== userId);
 
-        const updatedchat = await Chat.findByIdAndUpdate(chatId,chat, {new: true}).populate("users","-password").populate("groupadmin","-password");
+        console.log(chat);
+
+        const updatedchat = await Chat.findByIdAndUpdate(chatId,chat, {new: true}).populate("users","-password").populate("groupAdmin","-password");
 
         res.json({data: updatedchat});
 
