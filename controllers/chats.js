@@ -25,7 +25,7 @@ export const createChat = async (req, res) => {
         });
 
         if(ischat.length>0){
-            return res.status(200).json({data: ischat})
+            return res.status(200).json({message: 'chat already created'})
         }
         else{
             const chatdata = {chatname: "sender",isgroupchat: false, users:[req.userId,userId]};
@@ -129,7 +129,7 @@ export const removeGroupChat = async(req, res) =>{
 
         chat.users = chat.users.filter((u) => u._id.toString() !== userId);
 
-        console.log(chat);
+        
 
         const updatedchat = await Chat.findByIdAndUpdate(chatId,chat, {new: true}).populate("users","-password").populate("groupAdmin","-password");
 
