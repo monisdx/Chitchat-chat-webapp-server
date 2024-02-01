@@ -20,6 +20,9 @@ app.use(cors());
 app.use('/user',userRoutes);
 app.use('/chat', chatRoutes);
 app.use('/message', messageRoutes);
+app.use("/", (req, res) => {
+    res.send("hello");
+} )
 
 const PORT = process.env.PORT || 5000;
 
