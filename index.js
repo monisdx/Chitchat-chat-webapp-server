@@ -38,22 +38,79 @@ const io = new Server(server,{
     }
 });
 
+var onlineusers = [];
+var socketId;
+
 io.on('connection', (socket) => {
     console.log('connected to socket.io');
-
     socket.on('setup' , (userData)=>{
-        console.log(userData?.name, ": ",userData?._id);
+        
+        // console.log('login' ,socket.id);
+        socketId = socket.id;
+        
         socket.join(userData?._id);
         socket.emit('connected');
+
+    
+        const index = onlineusers.findIndex(user => user.userId === userData?._id);
+
+        if(index !== -1){
+            onlineusers[index].socketId = socketId;
+        }
+        else{
+            onlineusers.push({ userId: userData?._id, socketId: socketId })
+        }
+        // console.log('push');
+        // console.log(onlineusers)
+        
+        io.emit('get online users', onlineusers);
+
     });
+
+    
 
     socket.on('join chat', (room)=>{
         socket.join(room);
-        console.log('User joined room: ' + room);
+        // console.log('User joined room: ' + room);
     });
 
-    socket.on('typing', (room) => socket.in(room).emit('typing'));
-    socket.on('stop typing', (room) => socket.in(room).emit('stop typing'));
+    socket.on('typing', ([user, chat]) => {
+
+        
+
+        if(!chat || !user) return;
+
+
+        chat?.users?.forEach((u) => {
+
+
+            if(u?._id === user){
+                return;
+            }
+
+            // console.log(" me yaha kese ", user);
+
+            socket.in(chat?._id).emit('typing', [user, chat]);
+
+           
+        })
+    });
+
+    
+    socket.on('stop typing', ([user, chat]) =>{
+
+        if(!chat || !user) return ;
+
+        chat?.users?.forEach((u) => {
+            if(u?._id === user){
+                return;
+            }
+
+            socket.in(chat?._id).emit('stop typing', [user, chat]);
+        })
+
+    });
+
 
     socket.on('new message', (newmessagereceived)=>{
         // console.log(newmessagereceived);
@@ -70,11 +127,18 @@ io.on('connection', (socket) => {
 
     });
 
-    
+ 
 
-    socket.off('setup',()=>{
-        console.log('USER DISCONNECTED')
-        socket.leave(userData?._id)
+    socket.on('disconnect',() => {
+        if (onlineusers && onlineusers.length > 0) {
+           
+            onlineusers = onlineusers.filter((user) => user.socketId !== socket.id);
+          }
+        //   console.log('disconnect',socket.id);
+        // console.log(onlineusers);
+
+        io.emit('get online users', onlineusers);
     })
+
 
   });
