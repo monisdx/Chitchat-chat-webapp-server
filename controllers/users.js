@@ -82,26 +82,6 @@ export const getUsersBySearch = async (req, res) => {
   }
 };
 
-export const getusers = async (req, res) => {
-  try {
-    const users = await User.find();
-
-    res.status(200).json(users);
-  } catch (error) {
-    res.status(500).json(error);
-  }
-};
-
-export const getuser = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const user = await User.findById(id);
-
-    res.status(200).json(user);
-  } catch (error) {
-    res.status(500).json(error);
-  }
-};
 
 // get users to whom alreay chatted/chatroom exists
 // search for users using username/name
