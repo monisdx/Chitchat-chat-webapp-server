@@ -80,7 +80,7 @@ io.on('connection', (socket) => {
     socket.on('typing', ([user, chat]) => {
 
         
-
+        
         if(!chat || !user) return;
 
 
@@ -101,6 +101,8 @@ io.on('connection', (socket) => {
 
     
     socket.on('stop typing', ([user, chat]) =>{
+
+    
 
         if(!chat || !user) return ;
 
